@@ -1,9 +1,18 @@
 from argon2 import PasswordHasher
+from password_strength import PasswordPolicy
 
 from api import App, User
-
+from exceptions import WeakPasswordError
+from settings import PASSWORD_MIN_LENGTH, PASSWORD_MIN_UPPERCASE_LETTERS, PASSWORD_MIN_NUMBERS, \
+    PASSWORD_MIN_SPECIAL_CHARACTERS
 
 password_hasher = PasswordHasher()
+password_policy = PasswordPolicy.from_names(
+    length=PASSWORD_MIN_LENGTH,
+    uppercase=PASSWORD_MIN_UPPERCASE_LETTERS,
+    numbers=PASSWORD_MIN_NUMBERS,
+    special=PASSWORD_MIN_SPECIAL_CHARACTERS,
+)
 
 
 class SecureApp(App):
@@ -30,6 +39,8 @@ class SecureApp(App):
         self.db_conn.commit()
 
     def create_user(self, email: str, password: str) -> User:
+        if password_policy.test(password):
+            raise WeakPasswordError
         password_hash = password_hasher.hash(password)
         return self._sql_insert_user(email=email, password_hash=password_hash)
 

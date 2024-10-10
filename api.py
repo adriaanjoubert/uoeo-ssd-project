@@ -20,7 +20,7 @@ class App:
         self.db_conn = sqlite3.connect(self.db_name)
         self.cur = self.db_conn.cursor()
 
-    def create_user(self, username: str, password: str) -> User:
+    def create_user(self, email: str, password: str) -> User:
         raise NotImplementedError
 
     def _sql_insert_user(self, **kwargs: Any) -> User:

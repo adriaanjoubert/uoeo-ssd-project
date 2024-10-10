@@ -1,5 +1,6 @@
 from typing import Any
 
+from exceptions import WeakPasswordError
 from insecure_api import InsecureApp
 from secure_api import SecureApp
 
@@ -50,9 +51,12 @@ class Session:
                 pass
 
     def create_account(self) -> None:
-        username = input("Username: ")
+        email = input("email: ")
         password = input("Password: ")
-        user = self.create_user(self, username=username, password=password)
+        try:
+            user = self.app.create_user(self, email=email, password=password)
+        except WeakPasswordError:
+            print("Weak password.")
         user.log_in()
 
 

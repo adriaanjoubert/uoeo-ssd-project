@@ -12,6 +12,7 @@ pipenv = "==2024.1.0"
 platformdirs = "==4.3.6"
 virtualenv = "==20.26.6"
 argon2-cffi = "*"
+password-strength = "*"
 
 [dev-packages]
 
