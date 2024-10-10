@@ -1,0 +1,20 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+certifi = "==2024.8.30"
+distlib = "==0.3.8"
+filelock = "==3.16.1"
+packaging = "==24.1"
+pipenv = "==2024.1.0"
+platformdirs = "==4.3.6"
+virtualenv = "==20.26.6"
+argon2-cffi = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.13"
+python_full_version = "3.13.0"
