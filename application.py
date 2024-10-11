@@ -75,10 +75,10 @@ class Session:
 
     def create_account(self) -> None:
         while True:
-            email = input("email: ")
+            email = input("Email: ")
             password = input("Password: ")
             try:
-                user = self.app.create_user(self, email=email, password=password)
+                user = self.app.create_user(email=email, password=password)
                 self.user = user
                 break
             except WeakPasswordError:
