@@ -1,3 +1,7 @@
+# Admin user defaults
+ADMIN_USER_DEFAULT_PASSWORD = "Abcd1234!"
+ADMIN_USER_EMAIL = "admin@example.com"
+
 # Password policy
 PASSWORD_MIN_LENGTH = 8
 PASSWORD_MIN_UPPERCASE_LETTERS = 1

@@ -25,3 +25,6 @@ class App:
 
     def _sql_insert_user(self, **kwargs: Any) -> User:
         raise NotImplementedError
+
+    def authenticate(self, email: str, password: str) -> User | None:
+        raise NotImplementedError

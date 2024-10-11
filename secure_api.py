@@ -1,6 +1,7 @@
 from argon2 import PasswordHasher
 from password_strength import PasswordPolicy
 
+import settings
 from api import App, User
 from exceptions import WeakPasswordError
 from settings import PASSWORD_MIN_LENGTH, PASSWORD_MIN_UPPERCASE_LETTERS, PASSWORD_MIN_NUMBERS, \
@@ -20,15 +21,20 @@ class SecureApp(App):
 
     def __init__(self) -> None:
         super().__init__()
+        self.set_up_database()
+
+    def set_up_database(self) -> None:
+        # Create tables
         self.cur.execute(
             """
             CREATE TABLE IF NOT EXISTS users (
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 email TEXT NOT NULL UNIQUE,
+                is_admin BOOLEAN DEFAULT false,
                 password_hash TEXT NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                mfa_token_hash TEXT NULL,
                 mfa_token_expires_at TIMESTAMP NULL,
+                mfa_token_hash TEXT NULL,
                 CHECK (
                     (mfa_token_hash IS NULL AND mfa_token_expires_at IS NULL)
                     OR (mfa_token_hash IS NOT NULL AND mfa_token_expires_at IS NOT NULL)
@@ -36,6 +42,11 @@ class SecureApp(App):
             );
             """
         )
+
+        # Add admin user
+        user = self._sql_select_user_by_email(email=settings.ADMIN_USER_EMAIL)
+        if user is None:
+            self.create_user(email=settings.ADMIN_USER_EMAIL, password=settings.ADMIN_USER_DEFAULT_PASSWORD)
         self.db_conn.commit()
 
     def create_user(self, email: str, password: str) -> User:
@@ -74,13 +85,16 @@ class SecureApp(App):
             return user
         return None
 
-    def _sql_select_user_by_email(self, email: str) -> User:
-        row = self.cur.fetchone(
+    def _sql_select_user_by_email(self, email: str) -> User | None:
+        result = self.cur.execute(
             """
-            SELECT email, id, password_hash FROM users WHERE email = %s;
+            SELECT email, id, password_hash FROM users WHERE email = ?;
             """,
-            email,
+            (email,),
         )
+        row = result.fetchone()
+        if row is None:
+            return None
         user = User(
             email=row[0],
             id=row[1],
