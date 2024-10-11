@@ -24,7 +24,7 @@ class InsecureApp(App):
                 email TEXT NOT NULL UNIQUE,
                 password TEXT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                mfa_token TEXT NOT NULL,
+                mfa_token TEXT NOT NULL DEFAULT ''
             );
             """
         )
@@ -39,8 +39,8 @@ class InsecureApp(App):
                 email,
                 password
             ) VALUES (
-                {email},
-                {password}
+                '{email}',
+                '{password}'
             ) RETURNING id;
             """
         )
@@ -49,6 +49,7 @@ class InsecureApp(App):
         return InsecureUser(
             email=email,
             id=row[0],
+            password=password,
         )
 
     def authenticate(self, email: str, password: str) -> InsecureUser | None:

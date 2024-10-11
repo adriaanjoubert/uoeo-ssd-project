@@ -41,10 +41,10 @@ class SecureApp(App):
                 is_admin BOOLEAN DEFAULT false,
                 password_hash TEXT NOT NULL,
                 mfa_token_expires_at TIMESTAMP NULL,
-                mfa_token_hash TEXT NULL,
+                mfa_token_hash TEXT NOT NULL DEFAULT '',
                 CHECK (
-                    (mfa_token_hash IS NULL AND mfa_token_expires_at IS NULL)
-                    OR (mfa_token_hash IS NOT NULL AND mfa_token_expires_at IS NOT NULL)
+                    (mfa_token_hash == '' AND mfa_token_expires_at IS NULL)
+                    OR (mfa_token_hash <> '' AND mfa_token_expires_at IS NOT NULL)
                 )
             );
             """
