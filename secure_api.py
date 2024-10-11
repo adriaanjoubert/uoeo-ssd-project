@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 from argon2 import PasswordHasher
 from password_strength import PasswordPolicy
 
@@ -14,6 +16,11 @@ password_policy = PasswordPolicy.from_names(
     numbers=PASSWORD_MIN_NUMBERS,
     special=PASSWORD_MIN_SPECIAL_CHARACTERS,
 )
+
+
+@dataclass
+class SecureUser(User):
+    password_hash: str | None = ""
 
 
 class SecureApp(App):
@@ -49,13 +56,13 @@ class SecureApp(App):
             self.create_user(email=settings.ADMIN_USER_EMAIL, password=settings.ADMIN_USER_DEFAULT_PASSWORD)
         self.db_conn.commit()
 
-    def create_user(self, email: str, password: str) -> User:
+    def create_user(self, email: str, password: str) -> SecureUser:
         if password_policy.test(password):
             raise WeakPasswordError
         password_hash = password_hasher.hash(password)
         return self._sql_insert_user(email=email, password_hash=password_hash)
 
-    def _sql_insert_user(self, email: str, password_hash: str) -> User:
+    def _sql_insert_user(self, email: str, password_hash: str) -> SecureUser:
         self.cur.execute(
             """
             INSERT INTO users (
@@ -73,19 +80,19 @@ class SecureApp(App):
         )
         row = self.cur.fetchone()
         self.db_conn.commit()
-        return User(
+        return SecureUser(
             email=email,
             id=row[0],
             password_hash=password_hash,
         )
 
-    def authenticate(self, email: str, password: str) -> User | None:
+    def authenticate(self, email: str, password: str) -> SecureUser | None:
         user = self._sql_select_user_by_email(email=email)
         if password_hasher.verify(user.password_hash, password):
             return user
         return None
 
-    def _sql_select_user_by_email(self, email: str) -> User | None:
+    def _sql_select_user_by_email(self, email: str) -> SecureUser | None:
         result = self.cur.execute(
             """
             SELECT email, id, password_hash FROM users WHERE email = ?;
@@ -95,7 +102,7 @@ class SecureApp(App):
         row = result.fetchone()
         if row is None:
             return None
-        user = User(
+        user = SecureUser(
             email=row[0],
             id=row[1],
             password_hash=row[2],

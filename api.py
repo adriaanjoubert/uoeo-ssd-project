@@ -7,10 +7,6 @@ from typing import Any
 class User:
     email: str
     id: int
-    password_hash: str | None = ""
-
-    def log_in(self) -> None:
-        pass
 
 
 class App:
