@@ -1,6 +1,7 @@
 from dataclasses import dataclass
+from decimal import Decimal
 
-from api import App, User
+from api import App, User, Product
 
 
 @dataclass
@@ -74,3 +75,57 @@ class InsecureApp(App):
             password=row[2],
         )
         return user
+
+    def _sql_insert_product(self, price: Decimal, title: str) -> Product:
+        self.cur.execute(
+            f"""
+            INSERT INTO products (
+                price,
+                title
+            ) VALUES (
+                '{price}',
+                '{title}'
+            ) RETURNING id;
+            """
+        )
+        row = self.cur.fetchone()
+        self.db_conn.commit()
+        return Product(
+            id=row[0],
+            price=price,
+            title=title,
+        )
+
+    def _sql_select_products(self) -> list[Product]:
+        result = self.cur.execute(
+            """
+            SELECT id, price, title FROM products;
+            """
+        )
+        rows = result.fetchall()
+        products = []
+        for row in rows:
+            products.append(
+                Product(
+                    id=row[0],
+                    price=row[1],
+                    title=row[2],
+                )
+            )
+        return products
+
+    def _sql_select_product_by_id(self, id_: int) -> Product | None:
+        result = self.cur.execute(
+            f"""
+            SELECT id, price, title FROM products WHERE id = '{id_}';
+            """
+        )
+        row = result.fetchone()
+        if row is None:
+            return None
+        product = Product(
+            id=row[0],
+            price=row[1],
+            title=row[2],
+        )
+        return product

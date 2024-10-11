@@ -5,7 +5,7 @@ class TestAppMixin:
     db_name: str
 
     def __init__(self) -> None:
-        print("Deleting test database...")
+        print("\nDeleting test database...")
         if os.path.exists(self.db_name):
             os.remove(self.db_name)
         print("Creating test database...")
