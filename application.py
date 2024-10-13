@@ -89,6 +89,7 @@ class Session:
             except WeakPasswordError:
                 print("Weak password.")
                 continue
+        self.authenticate()
 
     def reset_password(self) -> None:
         email = input("Email: ")
