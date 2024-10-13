@@ -4,8 +4,12 @@ from decimal import Decimal
 
 from api import App, User, Product
 from constants.authentication import FAILED_LOG_IN_ACCOUNT_LOCK_MINUTES
-from constants.log_in_attempt_result_codes import ACCESS_GRANTED_PASSWORD, ACCESS_DENIED_PASSWORD, \
-    ACCESS_DENIED_ACCOUNT_LOCKED, ACCESS_GRANTED_TOKEN
+from constants.log_in_attempt_result_codes import (
+    ACCESS_GRANTED_PASSWORD,
+    ACCESS_DENIED_PASSWORD,
+    ACCESS_DENIED_ACCOUNT_LOCKED,
+    ACCESS_GRANTED_TOKEN,
+)
 
 
 @dataclass
@@ -81,7 +85,12 @@ class InsecureApp(App):
             SELECT COUNT(*)
             FROM log_in_attempts
             WHERE user_id = '{user.id}'
-            AND created_at > '{datetime.datetime.now(tz=datetime.timezone.utc) - datetime.timedelta(minutes=FAILED_LOG_IN_ACCOUNT_LOCK_MINUTES)}'
+            AND created_at > '{
+                datetime.datetime.now(tz=datetime.timezone.utc)
+                - datetime.timedelta(
+                    minutes=FAILED_LOG_IN_ACCOUNT_LOCK_MINUTES
+                )
+            }'
             AND result_code <> '{ACCESS_GRANTED_PASSWORD}'
             AND result_code <> '{ACCESS_GRANTED_TOKEN}'
             """
@@ -95,12 +104,21 @@ class InsecureApp(App):
         if user is None:
             return None
         if self._sql_failed_log_in_attempts(user=user) >= 3:
-            self._sql_insert_log_in_attempt(result_code=ACCESS_DENIED_ACCOUNT_LOCKED, user=user)
+            self._sql_insert_log_in_attempt(
+                result_code=ACCESS_DENIED_ACCOUNT_LOCKED,
+                user=user,
+            )
             return None
         if user.password == password:
-            self._sql_insert_log_in_attempt(result_code=ACCESS_GRANTED_PASSWORD, user=user)
+            self._sql_insert_log_in_attempt(
+                result_code=ACCESS_GRANTED_PASSWORD,
+                user=user,
+            )
             return user
-        self._sql_insert_log_in_attempt(result_code=ACCESS_DENIED_PASSWORD, user=user)
+        self._sql_insert_log_in_attempt(
+            result_code=ACCESS_DENIED_PASSWORD,
+            user=user,
+        )
         return None
 
     def _sql_select_user_by_email(self, email: str) -> InsecureUser | None:

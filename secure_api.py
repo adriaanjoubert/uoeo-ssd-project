@@ -7,8 +7,12 @@ from password_strength import PasswordPolicy
 import settings
 from api import App, User, Product
 from exceptions import WeakPasswordError
-from settings import PASSWORD_MIN_LENGTH, PASSWORD_MIN_UPPERCASE_LETTERS, PASSWORD_MIN_NUMBERS, \
-    PASSWORD_MIN_SPECIAL_CHARACTERS
+from settings import (
+    PASSWORD_MIN_LENGTH,
+    PASSWORD_MIN_UPPERCASE_LETTERS,
+    PASSWORD_MIN_NUMBERS,
+    PASSWORD_MIN_SPECIAL_CHARACTERS,
+)
 
 password_hasher = PasswordHasher()
 password_policy = PasswordPolicy.from_names(
@@ -40,7 +44,10 @@ class SecureApp(App):
                 mfa_token_hash TEXT NOT NULL DEFAULT '',
                 CHECK (
                     (mfa_token_hash == '' AND mfa_token_expires_at IS NULL)
-                    OR (mfa_token_hash <> '' AND mfa_token_expires_at IS NOT NULL)
+                    OR (
+                        mfa_token_hash <> ''
+                        AND mfa_token_expires_at IS NOT NULL
+                    )
                 )
             );
             """
@@ -58,7 +65,10 @@ class SecureApp(App):
         # Add admin user
         user = self._sql_select_user_by_email(email=settings.ADMIN_USER_EMAIL)
         if user is None:
-            self.create_user(email=settings.ADMIN_USER_EMAIL, password=settings.ADMIN_USER_DEFAULT_PASSWORD)
+            self.create_user(
+                email=settings.ADMIN_USER_EMAIL,
+                password=settings.ADMIN_USER_DEFAULT_PASSWORD,
+            )
         self.db_conn.commit()
 
         super().set_up_database()
@@ -135,7 +145,7 @@ class SecureApp(App):
 
     def _sql_insert_product(self, price: Decimal, title: str) -> Product:
         self.cur.execute(
-            f"""
+            """
             INSERT INTO products (
                 price,
                 title
@@ -156,7 +166,7 @@ class SecureApp(App):
 
     def _sql_select_product_by_id(self, id_: int) -> Product | None:
         result = self.cur.execute(
-            f"""
+            """
             SELECT id, price, title FROM products WHERE id = ?;
             """,
             (id_,),

@@ -17,10 +17,20 @@ class SecureAppTestCase(TestCase):
         cls.app = TestSecureApp()
 
     def test_create_user_ok(self) -> None:
-        user = self.app.create_user(email="test1@example.com", password="Abcde12345!")
+        user = self.app.create_user(
+            email="test1@example.com",
+            password="Abcde12345!",
+        )
         self.assertIsInstance(user, User)
         self.assertEqual(user.email, "test1@example.com")
-        self.assertTrue(password_hasher.verify(user.password_hash, "Abcde12345!"))
+        self.assertTrue(
+            password_hasher.verify(user.password_hash, "Abcde12345!")
+        )
 
     def test_create_user_ko_weak_password(self) -> None:
-        self.assertRaises(WeakPasswordError, self.app.create_user, email="test2@example.com", password="abc123")
+        self.assertRaises(
+            WeakPasswordError,
+            self.app.create_user,
+            email="test2@example.com",
+            password="abc123",
+        )
