@@ -44,3 +44,21 @@ class App:
 
     def authenticate(self, email: str, password: str) -> User | None:
         raise NotImplementedError
+
+    def _sql_select_products(self) -> list[Product]:
+        result = self.cur.execute(
+            """
+            SELECT id, price, title FROM products;
+            """
+        )
+        rows = result.fetchall()
+        products = []
+        for row in rows:
+            products.append(
+                Product(
+                    id=row[0],
+                    price=row[1],
+                    title=row[2],
+                )
+            )
+        return products

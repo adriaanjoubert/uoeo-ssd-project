@@ -1,10 +1,11 @@
 from dataclasses import dataclass
+from decimal import Decimal
 
 from argon2 import PasswordHasher
 from password_strength import PasswordPolicy
 
 import settings
-from api import App, User
+from api import App, User, Product
 from exceptions import WeakPasswordError
 from settings import PASSWORD_MIN_LENGTH, PASSWORD_MIN_UPPERCASE_LETTERS, PASSWORD_MIN_NUMBERS, \
     PASSWORD_MIN_SPECIAL_CHARACTERS
@@ -108,3 +109,41 @@ class SecureApp(App):
             password_hash=row[2],
         )
         return user
+
+    def _sql_insert_product(self, price: Decimal, title: str) -> Product:
+        self.cur.execute(
+            f"""
+            INSERT INTO products (
+                price,
+                title
+            ) VALUES (
+                ?,
+                ?
+            ) RETURNING id;
+            """,
+            (price, title),
+        )
+        row = self.cur.fetchone()
+        self.db_conn.commit()
+        return Product(
+            id=row[0],
+            price=price,
+            title=title,
+        )
+
+    def _sql_select_product_by_id(self, id_: int) -> Product | None:
+        result = self.cur.execute(
+            f"""
+            SELECT id, price, title FROM products WHERE id = ?;
+            """,
+            (id_,),
+        )
+        row = result.fetchone()
+        if row is None:
+            return None
+        product = Product(
+            id=row[0],
+            price=row[1],
+            title=row[2],
+        )
+        return product

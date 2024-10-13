@@ -96,24 +96,6 @@ class InsecureApp(App):
             title=title,
         )
 
-    def _sql_select_products(self) -> list[Product]:
-        result = self.cur.execute(
-            """
-            SELECT id, price, title FROM products;
-            """
-        )
-        rows = result.fetchall()
-        products = []
-        for row in rows:
-            products.append(
-                Product(
-                    id=row[0],
-                    price=row[1],
-                    title=row[2],
-                )
-            )
-        return products
-
     def _sql_select_product_by_id(self, id_: int) -> Product | None:
         result = self.cur.execute(
             f"""
