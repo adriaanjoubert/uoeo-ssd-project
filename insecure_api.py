@@ -61,10 +61,9 @@ class InsecureApp(App):
 
     def _sql_select_user_by_email(self, email: str) -> InsecureUser | None:
         result = self.cur.execute(
+            f"""
+            SELECT email, id, password FROM users WHERE email = '{email}';
             """
-            SELECT email, id, password FROM users WHERE email = ?;
-            """,
-            (email,),
         )
         row = result.fetchone()
         if row is None:
