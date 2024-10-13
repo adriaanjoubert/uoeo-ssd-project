@@ -1,6 +1,16 @@
 # Requirements
 - Python 3.13.0
 
+# Activate virtual environment
+```bash
+pipenv shell
+```
+
+# Install dependencies
+```bash
+pipenv install
+```
+
 # Run the application
 ```bash
 python application.py
