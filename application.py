@@ -77,6 +77,8 @@ class Session:
             else:
                 self.user = user
                 break
+        print("You are now logged in")
+        self.main_menu()
 
     def create_account(self) -> None:
         while True:
@@ -111,7 +113,34 @@ class Session:
         self.authenticate()
 
     def main_menu(self) -> None:
+        while True:
+            menu = (
+                "1. List products\n"
+                "2. View cart & checkout\n"
+                "3. Log out\n"
+                "4. Exit"
+            )
+            print(menu)
+            input_ = self._select_option()
+            match input_:
+                case 1:
+                    self.list_products()
+                case 2:
+                    self.view_cart()
+                case 3:
+                    self.log_out()
+                case 4:
+                    exit(0)
+
+    def list_products(self) -> None:
         pass
+
+    def view_cart(self) -> None:
+        pass
+
+    def log_out(self) -> None:
+        self.user = None
+        self.authenticate()
 
 
 def main() -> None:
