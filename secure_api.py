@@ -28,7 +28,6 @@ class SecureApp(App):
     db_name = "secure.db"
 
     def set_up_database(self) -> None:
-        super().set_up_database()
         self.cur.execute(
             """
             CREATE TABLE IF NOT EXISTS users (
@@ -62,6 +61,8 @@ class SecureApp(App):
             self.create_user(email=settings.ADMIN_USER_EMAIL, password=settings.ADMIN_USER_DEFAULT_PASSWORD)
         self.db_conn.commit()
 
+        super().set_up_database()
+
     def create_user(self, email: str, password: str) -> SecureUser:
         if password_policy.test(password):
             raise WeakPasswordError
@@ -92,8 +93,25 @@ class SecureApp(App):
             password_hash=password_hash,
         )
 
+    def _sql_insert_log_in_attempt(self, result_code: int, user: User) -> None:
+        self.cur.execute(
+            """
+            INSERT INTO log_in_attempts (
+                result_code,
+                user_id
+            ) VALUES (
+                ?,
+                ?
+            );
+            """,
+            (result_code, user.id),
+        )
+        self.db_conn.commit()
+
     def authenticate(self, email: str, password: str) -> SecureUser | None:
         user = self._sql_select_user_by_email(email=email)
+        if user is None:
+            return None
         if password_hasher.verify(user.password_hash, password):
             return user
         return None

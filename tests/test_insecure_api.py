@@ -2,6 +2,8 @@ from decimal import Decimal
 from unittest import TestCase
 
 from api import User, Product
+from constants.log_in_attempt_result_codes import ACCESS_GRANTED_PASSWORD, ACCESS_GRANTED_TOKEN, ACCESS_DENIED_PASSWORD, \
+    ACCESS_DENIED_ACCOUNT_LOCKED
 from insecure_api import InsecureApp, InsecureUser
 from tests.mixins import TestAppMixin
 
@@ -59,6 +61,22 @@ class InsecureAppTestCase(TestCase):
         self.assertEqual(user_5.id, user_5.id)
         self.assertEqual(user_5.email, "test3@example.com")
         self.assertEqual(user_5.password, "b")
+
+    def test_sql_failed_log_in_attempts(self) -> None:
+        # Clear the users table
+        self.app.cur.execute("DELETE FROM users;")
+        self.app.db_conn.commit()
+
+        # Insert new user
+        user = self.app._sql_insert_user(email="test@example.com", password="")
+        self.assertEqual(self.app._sql_failed_log_in_attempts(user=user), 0)
+
+        # Insert some log in attempts
+        self.app._sql_insert_log_in_attempt(result_code=ACCESS_GRANTED_PASSWORD, user=user)
+        self.app._sql_insert_log_in_attempt(result_code=ACCESS_GRANTED_TOKEN, user=user)
+        self.app._sql_insert_log_in_attempt(result_code=ACCESS_DENIED_PASSWORD, user=user)
+        self.app._sql_insert_log_in_attempt(result_code=ACCESS_DENIED_ACCOUNT_LOCKED, user=user)
+        self.assertEqual(self.app._sql_failed_log_in_attempts(user=user), 2)
 
     def test_sql_select_product_by_id_injection(self) -> None:
         # Insert new product

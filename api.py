@@ -37,6 +37,15 @@ class App:
             );
             """
         )
+        self.cur.execute(
+            """
+            CREATE TABLE log_in_attempts (
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                result_code INTEGER NOT NULL,
+                user_id INTEGER REFERENCES users(id)
+            );
+            """
+        )
 
     def create_user(self, email: str, password: str) -> User:
         raise NotImplementedError

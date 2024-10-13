@@ -1,7 +1,11 @@
+import datetime
 from dataclasses import dataclass
 from decimal import Decimal
 
 from api import App, User, Product
+from constants.authentication import FAILED_LOG_IN_ACCOUNT_LOCK_MINUTES
+from constants.log_in_attempt_result_codes import ACCESS_GRANTED_PASSWORD, ACCESS_DENIED_PASSWORD, \
+    ACCESS_DENIED_ACCOUNT_LOCKED, ACCESS_GRANTED_TOKEN
 
 
 @dataclass
@@ -13,7 +17,6 @@ class InsecureApp(App):
     db_name = "insecure.db"
 
     def set_up_database(self) -> None:
-        super().set_up_database()
         self.cur.execute(
             """
             CREATE TABLE IF NOT EXISTS users (
@@ -33,6 +36,7 @@ class InsecureApp(App):
             );
             """
         )
+        super().set_up_database()
 
     def create_user(self, email: str, password: str) -> InsecureUser:
         return self._sql_insert_user(email=email, password=password)
@@ -57,10 +61,46 @@ class InsecureApp(App):
             password=password,
         )
 
+    def _sql_insert_log_in_attempt(self, result_code: int, user: User) -> None:
+        self.cur.execute(
+            f"""
+            INSERT INTO log_in_attempts (
+                result_code,
+                user_id
+            ) VALUES (
+                '{result_code}',
+                '{user.id}'
+            );
+            """
+        )
+        self.db_conn.commit()
+
+    def _sql_failed_log_in_attempts(self, user: User) -> int:
+        result = self.cur.execute(
+            f"""
+            SELECT COUNT(*)
+            FROM log_in_attempts
+            WHERE user_id = '{user.id}'
+            AND created_at > '{datetime.datetime.now(tz=datetime.timezone.utc) - datetime.timedelta(minutes=FAILED_LOG_IN_ACCOUNT_LOCK_MINUTES)}'
+            AND result_code <> '{ACCESS_GRANTED_PASSWORD}'
+            AND result_code <> '{ACCESS_GRANTED_TOKEN}'
+            """
+        )
+        row = result.fetchone()
+        self.db_conn.commit()
+        return row[0]
+
     def authenticate(self, email: str, password: str) -> InsecureUser | None:
         user = self._sql_select_user_by_email(email=email)
+        if user is None:
+            return None
+        if self._sql_failed_log_in_attempts(user=user) >= 3:
+            self._sql_insert_log_in_attempt(result_code=ACCESS_DENIED_ACCOUNT_LOCKED, user=user)
+            return None
         if user.password == password:
+            self._sql_insert_log_in_attempt(result_code=ACCESS_GRANTED_PASSWORD, user=user)
             return user
+        self._sql_insert_log_in_attempt(result_code=ACCESS_DENIED_PASSWORD, user=user)
         return None
 
     def _sql_select_user_by_email(self, email: str) -> InsecureUser | None:
