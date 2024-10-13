@@ -12,12 +12,8 @@ class InsecureUser(User):
 class InsecureApp(App):
     db_name = "insecure.db"
 
-    def __init__(self) -> None:
-        super().__init__()
-        self.set_up_database()
-
     def set_up_database(self) -> None:
-        # Create tables
+        super().set_up_database()
         self.cur.execute(
             """
             CREATE TABLE IF NOT EXISTS users (
@@ -26,6 +22,14 @@ class InsecureApp(App):
                 password TEXT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 mfa_token TEXT NOT NULL DEFAULT ''
+            );
+            """
+        )
+        self.cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS password_reset_requests (
+                user_id INTEGER REFERENCES users(id),
+                token TEXT NOT NULL
             );
             """
         )

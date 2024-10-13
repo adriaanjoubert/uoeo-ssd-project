@@ -27,12 +27,8 @@ class SecureUser(User):
 class SecureApp(App):
     db_name = "secure.db"
 
-    def __init__(self) -> None:
-        super().__init__()
-        self.set_up_database()
-
     def set_up_database(self) -> None:
-        # Create tables
+        super().set_up_database()
         self.cur.execute(
             """
             CREATE TABLE IF NOT EXISTS users (
@@ -47,6 +43,15 @@ class SecureApp(App):
                     (mfa_token_hash == '' AND mfa_token_expires_at IS NULL)
                     OR (mfa_token_hash <> '' AND mfa_token_expires_at IS NOT NULL)
                 )
+            );
+            """
+        )
+        self.cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS password_reset_requests (
+                user_id INTEGER REFERENCES users(id),
+                token TEXT NOT NULL,
+                token_expires_at TIMESTAMP NOT NULL
             );
             """
         )

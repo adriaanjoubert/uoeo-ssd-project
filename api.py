@@ -23,7 +23,9 @@ class App:
     def __init__(self) -> None:
         self.db_conn = sqlite3.connect(self.db_name)
         self.cur = self.db_conn.cursor()
+        self.set_up_database()
 
+    def set_up_database(self) -> None:
         # Setup tables
         self.cur.execute(
             """
