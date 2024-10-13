@@ -91,6 +91,7 @@ class Session:
             except WeakPasswordError:
                 print("Weak password.")
                 continue
+        print("Account created.")
         self.authenticate()
 
     def reset_password(self) -> None:
@@ -140,6 +141,7 @@ class Session:
 
     def log_out(self) -> None:
         self.user = None
+        print("You have been logged out.")
         self.authenticate()
 
 
