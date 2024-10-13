@@ -70,7 +70,9 @@ class InsecureAppTestCase(TestCase):
 
         # Do SQL injection. This will always return the first row in the table
         # regardless of the email we pass.
-        user_5 = self.app._sql_select_user_by_email(email="abc123' OR '1'='1")
+        user_5 = self.app._sql_select_user_by_email(
+            email="abc123' OR '1' = '1"
+        )
         self.assertIsInstance(user_5, InsecureUser)
         self.assertEqual(user_5.id, user_5.id)
         self.assertEqual(user_5.email, "test3@example.com")
@@ -139,7 +141,9 @@ class InsecureAppTestCase(TestCase):
 
         # Do SQL injection. This will always return the first row in the table
         # regardless of the ID we pass.
-        product_5 = self.app._sql_select_product_by_id(id_="abc123' OR '1'='1")
+        product_5 = self.app._sql_select_product_by_id(
+            id_="abc123' OR '1' = '1"
+        )
         self.assertIsInstance(product_5, Product)
         self.assertEqual(product_5.id, product_1.id)
         self.assertEqual(product_5.price, Decimal(42))
