@@ -22,10 +22,24 @@ def generate_strings() -> generator:
 def brute_force() -> None:
     app = InsecureApp()
 
+    # Delete failed login attempts
+    app.cur.execute(
+        """
+        DELETE FROM log_in_attempts;
+        """
+    )
+
+    # Delete user
+    app.cur.execute(
+        """
+        DELETE FROM users WHERE email = 'victim@example.com';
+        """
+    )
+
     # Create the victim's user account
-    user = app._sql_select_user_by_email("victim@example.com")
-    if user is None:
-        app.create_user(email="victim@example.com", password="b")
+    app.create_user(email="victim@example.com", password="b")
+
+    app.db_conn.commit()
 
     # Let's say the attacker knows the target's email address, but not the
     # password. Due to the weak password policy and no API rate limiting, the
