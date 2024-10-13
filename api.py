@@ -2,6 +2,7 @@ import sqlite3
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any
+from uuid import UUID
 
 
 @dataclass
@@ -39,7 +40,7 @@ class App:
         )
         self.cur.execute(
             """
-            CREATE TABLE log_in_attempts (
+            CREATE TABLE IF NOT EXISTS log_in_attempts (
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 result_code INTEGER NOT NULL,
                 user_id INTEGER REFERENCES users(id)
@@ -54,6 +55,13 @@ class App:
         raise NotImplementedError
 
     def authenticate(self, email: str, password: str) -> User | None:
+        raise NotImplementedError
+
+    def _sql_insert_password_reset_request(
+        self,
+        email: str,
+        token: UUID,
+    ) -> None:
         raise NotImplementedError
 
     def _sql_select_products(self) -> list[Product]:
@@ -73,3 +81,7 @@ class App:
                 )
             )
         return products
+
+    def email(self, content: str, email: str) -> None:
+        # TODO: Send email asynchronously
+        pass

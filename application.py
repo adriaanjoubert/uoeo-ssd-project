@@ -1,3 +1,4 @@
+import uuid
 from typing import Any
 
 from exceptions import WeakPasswordError
@@ -44,7 +45,8 @@ class Session:
             menu = (
                 "1. Log in\n"
                 "2. Create account\n"
-                "3. Exit"
+                "3. Reset password\n"
+                "4. Exit"
             )
             print(menu)
             input_ = self._select_option()
@@ -56,6 +58,9 @@ class Session:
                     self.create_account()
                     break
                 case 3:
+                    self.reset_password()
+                    break
+                case 4:
                     exit(0)
                 case _:
                     print("Invalid option")
@@ -84,6 +89,25 @@ class Session:
             except WeakPasswordError:
                 print("Weak password.")
                 continue
+
+    def reset_password(self) -> None:
+        email = input("Email: ")
+        user = self.app._sql_select_user_by_email(email=email)
+        if user is not None:
+            token = uuid.uuid4()
+            self.app._sql_insert_password_reset_request(
+                token=token,
+                user_id=user.id,
+            )
+            self.app.email(
+                content=f"Your password reset token is {token}",
+                email=user.email,
+            )
+        print(
+            "If an account with that email exists then we will send it"
+            " the password reset instructions shortly."
+        )
+        self.authenticate()
 
     def main_menu(self) -> None:
         pass

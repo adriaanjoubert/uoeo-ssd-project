@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from decimal import Decimal
+from uuid import UUID
 
 from argon2 import PasswordHasher
 from password_strength import PasswordPolicy
@@ -56,7 +57,7 @@ class SecureApp(App):
             """
             CREATE TABLE IF NOT EXISTS password_reset_requests (
                 user_id INTEGER REFERENCES users(id),
-                token TEXT NOT NULL,
+                token TEXT UNIQUE NOT NULL,
                 token_expires_at TIMESTAMP NOT NULL
             );
             """
@@ -142,6 +143,25 @@ class SecureApp(App):
             password_hash=row[2],
         )
         return user
+
+    def _sql_insert_password_reset_request(
+        self,
+        token: UUID,
+        user_id: int,
+    ) -> None:
+        self.cur.execute(
+            """
+            INSERT INTO password_reset_requests (
+                token,
+                user_id
+            ) VALUES (
+                ?,
+                ?
+            );
+            """,
+            (token, user_id),
+        )
+        self.db_conn.commit()
 
     def _sql_insert_product(self, price: Decimal, title: str) -> Product:
         self.cur.execute(

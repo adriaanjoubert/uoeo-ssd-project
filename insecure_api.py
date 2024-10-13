@@ -1,6 +1,7 @@
 import datetime
 from dataclasses import dataclass
 from decimal import Decimal
+from uuid import UUID
 
 from api import App, User, Product
 from constants.authentication import FAILED_LOG_IN_ACCOUNT_LOCK_MINUTES
@@ -136,6 +137,24 @@ class InsecureApp(App):
             password=row[2],
         )
         return user
+
+    def _sql_insert_password_reset_request(
+        self,
+        token: UUID,
+        user_id: int,
+    ) -> None:
+        self.cur.execute(
+            f"""
+            INSERT INTO password_reset_requests (
+                email,
+                token
+            ) VALUES (
+                '{token}',
+                '{user_id}'
+            );
+            """
+        )
+        self.db_conn.commit()
 
     def _sql_insert_product(self, price: Decimal, title: str) -> Product:
         self.cur.execute(
