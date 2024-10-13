@@ -65,10 +65,10 @@ class SecureApp(App):
         )
 
         # Add admin user
-        user = self._sql_select_user_by_email(email=settings.ADMIN_USER_EMAIL)
+        user = self._sql_select_user_by_email(email=settings.ADMIN_USER_DEFAULT_EMAIL)
         if user is None:
             self.create_user(
-                email=settings.ADMIN_USER_EMAIL,
+                email=settings.ADMIN_USER_DEFAULT_EMAIL,
                 password=settings.ADMIN_USER_DEFAULT_PASSWORD,
             )
         self.db_conn.commit()
