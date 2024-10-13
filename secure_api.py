@@ -3,6 +3,7 @@ from decimal import Decimal
 from uuid import UUID
 
 from argon2 import PasswordHasher
+from argon2.exceptions import VerifyMismatchError
 from password_strength import PasswordPolicy
 
 import settings
@@ -123,9 +124,11 @@ class SecureApp(App):
         user = self._sql_select_user_by_email(email=email)
         if user is None:
             return None
-        if password_hasher.verify(user.password_hash, password):
+        try:
+            password_hasher.verify(user.password_hash, password)
             return user
-        return None
+        except VerifyMismatchError:
+            return None
 
     def _sql_select_user_by_email(self, email: str) -> SecureUser | None:
         result = self.cur.execute(
