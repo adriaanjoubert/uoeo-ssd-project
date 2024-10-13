@@ -1,6 +1,9 @@
 # Requirements
 - Python 3.13.0
 
+## Optional requirements
+If you would like to inspect the database then you will need to have `sqlite3` installed on your system:
+
 # Activate virtual environment
 ```bash
 pipenv shell
