@@ -69,31 +69,49 @@ class SecureApp(App):
         if user is None:
             self.create_user(
                 email=settings.ADMIN_USER_DEFAULT_EMAIL,
+                is_admin=True,
                 password=settings.ADMIN_USER_DEFAULT_PASSWORD,
             )
         self.db_conn.commit()
 
         super().set_up_database()
 
-    def create_user(self, email: str, password: str) -> SecureUser:
+    def create_user(
+        self,
+        email: str,
+        password: str,
+        is_admin: bool | None = False,
+    ) -> SecureUser:
         if password_policy.test(password):
             raise WeakPasswordError
         password_hash = password_hasher.hash(password)
-        return self._sql_insert_user(email=email, password_hash=password_hash)
+        return self._sql_insert_user(
+            email=email,
+            is_admin=is_admin,
+            password_hash=password_hash,
+        )
 
-    def _sql_insert_user(self, email: str, password_hash: str) -> SecureUser:
+    def _sql_insert_user(
+        self,
+        email: str,
+        password_hash: str,
+        is_admin: bool | None = False,
+    ) -> SecureUser:
         self.cur.execute(
             """
             INSERT INTO users (
                 email,
+                is_admin,
                 password_hash
             ) VALUES (
+                ?,
                 ?,
                 ?
             ) RETURNING id;
             """,
             (
                 email,
+                is_admin,
                 password_hash,
             ),
         )
@@ -102,6 +120,7 @@ class SecureApp(App):
         return SecureUser(
             email=email,
             id=row[0],
+            is_admin=is_admin,
             password_hash=password_hash,
         )
 
@@ -133,7 +152,7 @@ class SecureApp(App):
     def _sql_select_user_by_email(self, email: str) -> SecureUser | None:
         result = self.cur.execute(
             """
-            SELECT email, id, password_hash FROM users WHERE email = ?;
+            SELECT email, id, is_admin, password_hash FROM users WHERE email = ?;
             """,
             (email,),
         )
@@ -143,7 +162,8 @@ class SecureApp(App):
         user = SecureUser(
             email=row[0],
             id=row[1],
-            password_hash=row[2],
+            is_admin=row[2],
+            password_hash=row[3],
         )
         return user
 
@@ -177,7 +197,7 @@ class SecureApp(App):
                 ?
             ) RETURNING id;
             """,
-            (price, title),
+            (str(price), title),
         )
         row = self.cur.fetchone()
         self.db_conn.commit()

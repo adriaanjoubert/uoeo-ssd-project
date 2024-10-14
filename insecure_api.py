@@ -46,7 +46,12 @@ class InsecureApp(App):
     def create_user(self, email: str, password: str) -> InsecureUser:
         return self._sql_insert_user(email=email, password=password)
 
-    def _sql_insert_user(self, email: str, password: str) -> InsecureUser:
+    def _sql_insert_user(
+        self,
+        email: str,
+        password: str,
+        is_admin: bool | None = False,
+    ) -> InsecureUser:
         self.cur.execute(
             f"""
             INSERT INTO users (
@@ -63,6 +68,7 @@ class InsecureApp(App):
         return InsecureUser(
             email=email,
             id=row[0],
+            is_admin=is_admin,
             password=password,
         )
 
@@ -125,7 +131,7 @@ class InsecureApp(App):
     def _sql_select_user_by_email(self, email: str) -> InsecureUser | None:
         result = self.cur.execute(
             f"""
-            SELECT email, id, password FROM users WHERE email = '{email}';
+            SELECT email, id, is_admin, password FROM users WHERE email = '{email}';
             """
         )
         row = result.fetchone()
@@ -134,7 +140,8 @@ class InsecureApp(App):
         user = InsecureUser(
             email=row[0],
             id=row[1],
-            password=row[2],
+            is_admin=row[2],
+            password=row[3],
         )
         return user
 

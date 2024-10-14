@@ -16,6 +16,7 @@ class Product:
 class User:
     email: str
     id: int
+    is_admin: bool
 
 
 class App:

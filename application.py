@@ -1,4 +1,5 @@
 import uuid
+from decimal import Decimal
 from typing import Any
 
 from exceptions import WeakPasswordError
@@ -114,24 +115,71 @@ class Session:
         self.authenticate()
 
     def main_menu(self) -> None:
+        menu = (
+            "1. List products\n"
+            "2. View cart & checkout\n"
+            "3. Log out\n"
+            "4. Exit"
+        )
+
+        if self.user.is_admin:
+            menu += "\n5. Admin menu"
+
+        print(menu)
+        input_ = self._select_option()
+        match input_:
+            case 1:
+                self.list_products()
+            case 2:
+                self.view_cart()
+            case 3:
+                self.log_out()
+            case 4:
+                exit(0)
+            case 5:
+                if self.user.is_admin:
+                    self.admin_menu()
+                else:
+                    print(f"Invalid option: {input_}")
+                    self.main_menu()
+            case _:
+                print(f"Invalid option: {input_}")
+                self.main_menu()
+
+    def admin_menu(self) -> None:
+        if not self.user.is_admin:
+            self.main_menu()
+
+        menu = (
+            "1. Add product\n"
+            "2. Main menu"
+        )
+
+        print(menu)
+        input_ = self._select_option()
+        match input_:
+            case 1:
+                self.add_product()
+            case 2:
+                self.main_menu()
+            case _:
+                print(f"Invalid option: {input_}")
+                self.admin_menu()
+
+    def add_product(self) -> None:
+        title = input("Title: ")
+
         while True:
-            menu = (
-                "1. List products\n"
-                "2. View cart & checkout\n"
-                "3. Log out\n"
-                "4. Exit"
-            )
-            print(menu)
-            input_ = self._select_option()
-            match input_:
-                case 1:
-                    self.list_products()
-                case 2:
-                    self.view_cart()
-                case 3:
-                    self.log_out()
-                case 4:
-                    exit(0)
+            try:
+                price = Decimal(input("Price: "))
+                break
+            except ValueError:
+                print(f"Invalid price: {price}")
+                continue
+
+        self.app._sql_insert_product(price=price, title=title)
+        print("Product added")
+        self.admin_menu()
 
     def list_products(self, page: int | None = 1) -> None:
         products = self.app._sql_select_products(page=page)
