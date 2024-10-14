@@ -133,8 +133,61 @@ class Session:
                 case 4:
                     exit(0)
 
-    def list_products(self) -> None:
-        pass
+    def list_products(self, page: int | None = 1) -> None:
+        products = self.app._sql_select_products(page=page)
+        menu = ""
+        for i, product in enumerate(products):
+            menu += f"{i + 1}. {product.title}\n"
+
+        if page != 1:
+            menu += "8. Previous\n"
+
+        menu += "9. Next\n"
+        menu += "0. Main menu"
+
+        print(menu)
+        input_ = self._select_option()
+
+        match input_:
+            case num if 1 <= num <= 7:
+                self.product_detail(id_=products[num - 1].id, page=page)
+            case 8:
+                if page != 1:
+                    self.list_products(page=page - 1)
+                else:
+                    print(f"Invalid option: {input_}")
+                    self.list_products(page=page)
+            case 9:
+                self.list_products(page=page + 1)
+            case 0:
+                self.main_menu()
+            case _:
+                print(f"Invalid option: {input_}")
+                self.list_products(page=page)
+
+    def product_detail(self, id_: int, page: int) -> None:
+        product = self.app._sql_select_product(id_=id_)
+        print(f"Product: {product.title}")
+        print(f"Price: {product.price}")
+
+        menu = (
+            "1. Add to cart\n"
+            "2. Back"
+        )
+
+        print(menu)
+        input_ = self._select_option()
+
+        match input_:
+            case 1:
+                self.app.add_to_cart(id_=id_)
+                print("Product has been added to cart.")
+                self.list_products(page=page)
+            case 2:
+                self.list_products(page=page)
+            case _:
+                print(f"Invalid option: {input_}")
+                self.product_detail(id_=id_, page=page)
 
     def view_cart(self) -> None:
         pass

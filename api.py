@@ -19,9 +19,11 @@ class User:
 
 
 class App:
+    cart: list[int]
     db_name: str
 
     def __init__(self) -> None:
+        self.cart = []
         self.db_conn = sqlite3.connect(self.db_name)
         self.cur = self.db_conn.cursor()
         self.set_up_database()
@@ -64,11 +66,12 @@ class App:
     ) -> None:
         raise NotImplementedError
 
-    def _sql_select_products(self) -> list[Product]:
+    def _sql_select_products(self, page: int | None = 1) -> list[Product]:
         result = self.cur.execute(
             """
-            SELECT id, price, title FROM products;
-            """
+            SELECT id, price, title FROM products LIMIT 7 OFFSET ?;
+            """,
+            (page - 1,),
         )
         rows = result.fetchall()
         products = []
@@ -82,6 +85,23 @@ class App:
             )
         return products
 
+    def _sql_select_product(self, id_: int) -> Product | None:
+        result = self.cur.execute(
+            """
+            SELECT id, price, title FROM products WHERE id = ?;
+            """,
+            (id_,),
+        )
+        row = result.fetchone()
+        return Product(
+            id=row[0],
+            price=row[1],
+            title=row[2],
+        )
+
     def email(self, content: str, email: str) -> None:
         # TODO: Send email asynchronously
         pass
+
+    def add_to_cart(self, id_: int) -> None:
+        self.cart.append(id_)
