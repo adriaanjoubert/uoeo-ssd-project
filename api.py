@@ -50,6 +50,27 @@ class App:
             );
             """
         )
+        self.seed_database()
+
+    def seed_database(self) -> None:
+        result = self.cur.execute(
+            """
+            SELECT COUNT(*) FROM products;
+            """
+        )
+        row = result.fetchone()
+        if row[0] != 0:
+            return
+        self.cur.execute(
+            """
+            INSERT INTO products (price, title) VALUES
+            (42, 'Red crocodile skin handbag'),
+            (50, 'Pink running shoes'),
+            (100, 'Standard car wheel'),
+            (5, 'Magic the Gathering trading card set'),
+            (10, 'Prism');
+            """
+        )
 
     def create_user(self, email: str, password: str) -> User:
         raise NotImplementedError
